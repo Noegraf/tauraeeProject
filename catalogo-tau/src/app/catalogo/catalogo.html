@@ -4,9 +4,21 @@
     <p>Equipos reacondicionados con impacto social y ambiental.</p>
   </header>
 
+  <div class="filtros-container" aria-label="Filtrar por categoría">
+    @for (categoria of categorias; track categoria) {
+      <button
+        class="btn-filtro"
+        type="button"
+        (click)="filtrarPorCategoria(categoria)"
+        [class.activo]="categoriaSeleccionada === categoria">
+        {{ categoria | uppercase }}
+      </button>
+    }
+  </div>
+
   <main class="grilla-productos">
     <!-- El @for recorre tu array de productos y crea una tarjeta por cada uno -->
-    @for (producto of productos; track producto.id) {
+    @for (producto of productosFiltrados; track producto.id) {
       <article class="producto-card">
         
         <div class="imagen-container">

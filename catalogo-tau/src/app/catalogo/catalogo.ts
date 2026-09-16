@@ -10,6 +10,9 @@ import { UpperCasePipe } from '@angular/common';
 })
 export class Catalogo implements OnInit {
   public productos: Producto[] = [];
+  public categorias = ['todas', 'notebook', 'desktop', 'tablet', 'smartphone', 'accesorios'];
+  public categoriaSeleccionada = 'todas';
+  public productosFiltrados: Producto[] = [];
   public cargando = true;
   public error = '';
 
@@ -23,6 +26,7 @@ export class Catalogo implements OnInit {
     try {
       this.productos = await this.supabase.getProductos();
       console.log('Productos obtenidos:', this.productos);
+      this.productosFiltrados = [...this.productos];
       
       // 👇 2. Le avisamos a Angular que los datos ya están y debe redibujar
       this.cdr.detectChanges(); 
@@ -32,5 +36,19 @@ export class Catalogo implements OnInit {
     } finally {
       this.cargando = false;
     }
+  }
+
+  filtrarPorCategoria(categoria: string): void {
+    this.categoriaSeleccionada = categoria;
+
+    if (categoria === 'todas') {
+      this.productosFiltrados = [...this.productos];
+    } else {
+      this.productosFiltrados = this.productos.filter(
+        (producto) => producto.categoria === categoria,
+      );
+    }
+
+    this.cdr.detectChanges();
   }
 }
