@@ -1,118 +1,139 @@
-<main class="admin-page">
-	<header class="admin-page__header">
-		<p class="admin-page__eyebrow">Panel interno</p>
-		<h1>Agregar producto</h1>
-		<p>Cargá la información técnica y comercial del nuevo producto.</p>
-	</header>
+@if (!sesionActiva) {
+  <main class="login-page">
+    <section class="login-card" aria-labelledby="login-titulo">
+      <p class="brand-mark">TAU / ADMIN</p>
+      <h1 id="login-titulo">Ingresar al catálogo</h1>
+      <p>Accedé para administrar productos e inventario.</p>
+      <form class="login-form" (ngSubmit)="login()" novalidate>
+        <label>
+          Email
+          <input type="email" name="email" [(ngModel)]="email" required autocomplete="email" />
+        </label>
+        <label>
+          Contraseña
+          <input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" />
+        </label>
+        <button class="button button--primary button--full" type="submit">Ingresar <span aria-hidden="true">&#8594;</span></button>
+      </form>
+      @if (error) {
+        <p class="form-error" role="alert">{{ error }}</p>
+      }
+    </section>
+  </main>
+} @else {
+  <div class="admin-shell" [class.sidebar-open]="sidebarAbierto">
+    <button class="sidebar-scrim" type="button" aria-label="Cerrar navegación" (click)="sidebarAbierto = false"></button>
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="sidebar__top">
+        <div class="brand"><span class="brand__symbol">T</span><span><strong>TAU</strong><small>Catálogo interno</small></span></div>
+        <button class="icon-button sidebar__close" type="button" aria-label="Cerrar navegación" (click)="sidebarAbierto = false">&times;</button>
+      </div>
+      <nav class="sidebar__nav">
+        <span class="nav-label">Espacio de trabajo</span>
+        <a href="#inicio" [class.is-active]="seccionActiva === 'inicio'" [attr.aria-current]="seccionActiva === 'inicio' ? 'page' : null" (click)="cambiarSeccion('inicio'); $event.preventDefault()"><span class="nav-icon">&#8962;</span>Inicio</a>
+        <a href="#productos" [class.is-active]="seccionActiva === 'productos'" [attr.aria-current]="seccionActiva === 'productos' ? 'page' : null" (click)="cambiarSeccion('productos'); $event.preventDefault()"><span class="nav-icon">&#9638;</span>Productos</a>
+        <a href="#categorias" [class.is-active]="seccionActiva === 'categorias'" [attr.aria-current]="seccionActiva === 'categorias' ? 'page' : null" (click)="cambiarSeccion('categorias'); $event.preventDefault()"><span class="nav-icon">&#9672;</span>Categorías</a>
+        <a href="#inventario" [class.is-active]="seccionActiva === 'inventario'" [attr.aria-current]="seccionActiva === 'inventario' ? 'page' : null" (click)="cambiarSeccion('inventario'); $event.preventDefault()"><span class="nav-icon">&#9776;</span>Inventario</a>
+        <a href="#configuracion" [class.is-active]="seccionActiva === 'configuracion'" [attr.aria-current]="seccionActiva === 'configuracion' ? 'page' : null" (click)="cambiarSeccion('configuracion'); $event.preventDefault()"><span class="nav-icon">&#9881;</span>Configuración</a>
+      </nav>
+      <div class="sidebar__user"><span class="avatar">A</span><span><strong>Administrador</strong><small>Sesión activa</small></span><span class="status-dot status-dot--green"></span></div>
+    </aside>
 
-	@if (sesionActiva) {
-	<form class="producto-form" [formGroup]="productoForm" (ngSubmit)="onSubmit(fileInput)" novalidate>
-		<section class="producto-form__section" aria-labelledby="identificacion-titulo">
-			<h2 id="identificacion-titulo">Identificación</h2>
-			<div class="producto-form__grid">
-				<label>
-					Categoría
-					<select formControlName="categoria">
-						<option value="" disabled>Seleccioná una categoría</option>
-						<option value="notebook">Notebook</option>
-						<option value="desktop">Desktop</option>
-						<option value="tablet">Tablet</option>
-						<option value="smartphone">Smartphone</option>
-						<option value="accesorios">Accesorios</option>
-					</select>
-				</label>
-				<label>
-					Marca
-					<input type="text" formControlName="marca" placeholder="Ej. Lenovo" />
-				</label>
-				<label>
-					Modelo
-					<input type="text" formControlName="modelo" placeholder="Ej. ThinkPad E14" />
-				</label>
-			</div>
-		</section>
+    <main class="admin-main" id="productos">
+      <header class="topbar"><button class="icon-button menu-toggle" type="button" aria-label="Abrir navegación" (click)="sidebarAbierto = true">&#9776;</button><span class="topbar__context">Administración / Productos</span><span class="topbar__date">Panel interno</span></header>
+      @if (mensaje) { <div class="toast toast--success" role="status"><span aria-hidden="true">&#10003;</span>{{ mensaje }}<button type="button" aria-label="Cerrar notificación" (click)="cerrarNotificacion()">&times;</button></div> }
+      @if (error) { <div class="toast toast--error" role="alert"><span aria-hidden="true">!</span>{{ error }}<button type="button" aria-label="Cerrar notificación" (click)="cerrarNotificacion()">&times;</button></div> }
 
-		<section class="producto-form__section" aria-labelledby="tecnico-titulo">
-			<h2 id="tecnico-titulo">Especificaciones técnicas</h2>
-			<div class="producto-form__grid">
-				<label>
-					Procesador
-					<input type="text" formControlName="procesador" placeholder="Ej. Intel Core i5" />
-				</label>
-				<label>
-					Memoria RAM
-					<input type="text" formControlName="memoria_ram" placeholder="Ej. 16 GB" />
-				</label>
-				<label>
-					Disco
-					<input type="text" formControlName="disco" placeholder="Ej. SSD 512 GB" />
-				</label>
-				<label>
-					GPU
-					<input type="text" formControlName="gpu" placeholder="Ej. NVIDIA RTX 4060" />
-				</label>
-				<label>
-					Batería
-					<input type="text" formControlName="bateria" placeholder="Ej. 50 Wh" />
-				</label>
-				<label>
-					Pantalla (pulgadas)
-					<input type="number" formControlName="pulgadas" min="1" step="0.1" />
-				</label>
-				<label class="producto-form__field--wide">
-					Detalles extras
-					<textarea formControlName="detalles_extras" rows="4" placeholder="Ingresá información adicional del equipo"></textarea>
-				</label>
-			</div>
-		</section>
+      @if (seccionActiva === 'productos') {
+      <div class="content-wrap">
+        <header class="page-heading"><div><p class="eyebrow">Catálogo</p><h1>Productos</h1><p>Gestioná tu catálogo e inventario</p></div><button class="button button--primary" type="button" (click)="cancelarEdicion(fileInput); irAlFormulario()"><span aria-hidden="true">+</span> Nuevo producto</button></header>
 
-		<section class="producto-form__section" aria-labelledby="imagen-titulo">
-			<h2 id="imagen-titulo">Imagen del producto</h2>
-			<label>
-				Foto del equipo
-				<input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" />
-			</label>
-		</section>
+        <section class="stats-grid" aria-label="Resumen de inventario">
+          <button class="stat-card" type="button" [class.is-selected]="stockFiltro === 'todos'" (click)="stockFiltro = 'todos'"><span class="stat-card__label">Total de productos</span><strong>{{ listaProductos.length }}</strong><span class="stat-card__caption">En el catálogo</span></button>
+          <button class="stat-card" type="button" [class.is-selected]="stockFiltro === 'disponible'" (click)="filtrarPorStock('disponible')"><span class="stat-card__label">Disponibles</span><strong>{{ totalDisponibles }}</strong><span class="stat-card__caption"><i class="status-dot status-dot--green"></i> Stock suficiente</span></button>
+          <button class="stat-card" type="button" [class.is-selected]="stockFiltro === 'bajo'" (click)="filtrarPorStock('bajo')"><span class="stat-card__label">Bajo stock</span><strong>{{ totalBajoStock }}</strong><span class="stat-card__caption"><i class="status-dot status-dot--amber"></i> Hasta 3 unidades</span></button>
+          <button class="stat-card" type="button" [class.is-selected]="stockFiltro === 'sin'" (click)="filtrarPorStock('sin')"><span class="stat-card__label">Sin stock</span><strong>{{ totalSinStock }}</strong><span class="stat-card__caption"><i class="status-dot status-dot--red"></i> Requiere reposición</span></button>
+        </section>
 
-		<section class="producto-form__section" aria-labelledby="comercial-titulo">
-			<h2 id="comercial-titulo">Información comercial</h2>
-			<div class="producto-form__grid producto-form__grid--compact">
-				<label>
-					Precio
-					<input type="number" formControlName="precio" min="0" step="0.01" />
-				</label>
-				<label>
-					Stock
-					<input type="number" formControlName="stock" min="0" step="1" />
-				</label>
-			</div>
-		</section>
+        <section class="catalog-section" aria-labelledby="listado-titulo">
+          <div class="section-heading"><div><h2 id="listado-titulo">Listado de productos</h2><p>{{ productosFiltrados.length }} resultados</p></div><div class="view-toggle" role="group" aria-label="Vista del inventario"><button type="button" [class.is-active]="vistaInventario === 'lista'" (click)="vistaInventario = 'lista'">&#9776; <span>Lista</span></button><button type="button" [class.is-active]="vistaInventario === 'grilla'" (click)="vistaInventario = 'grilla'">&#9638; <span>Grilla</span></button></div></div>
+          <div class="toolbar"><label class="search-field"><span aria-hidden="true">&#9906;</span><input type="search" [(ngModel)]="busqueda" placeholder="Buscar por nombre, marca o modelo" aria-label="Buscar productos" /></label><label class="select-field"><span>Categoría</span><select [(ngModel)]="categoriaFiltro"><option value="todas">Todas</option>@for (categoria of categoriasDisponibles; track categoria) { <option [value]="categoria">{{ categoria }}</option> }</select></label><label class="select-field"><span>Stock</span><select [(ngModel)]="stockFiltro"><option value="todos">Todos</option><option value="disponible">Disponible</option><option value="bajo">Bajo stock</option><option value="sin">Sin stock</option></select></label><label class="select-field"><span>Ordenar</span><select [(ngModel)]="ordenProductos"><option value="recientes">Más recientes</option><option value="precio-asc">Precio menor</option><option value="precio-desc">Precio mayor</option><option value="stock-asc">Menor stock</option></select></label>@if (hayFiltrosActivos) { <button class="clear-button" type="button" (click)="limpiarFiltros()">Limpiar</button> }</div>
 
-		@if (mensaje) {
-			<p class="form-message form-message--success" role="status">{{ mensaje }}</p>
-		}
-		@if (error) {
-			<p class="form-message form-message--error" role="alert">{{ error }}</p>
-		}
+          @if (vistaInventario === 'lista') {
+            <div class="table-scroll"><table class="products-table"><thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead><tbody>
+              @for (producto of productosFiltrados; track producto.id) {
+                <tr><td><div class="product-cell">@if (producto.imagen_url) { <img [src]="producto.imagen_url" [alt]="producto.marca + ' ' + producto.modelo" /> } @else { <span class="image-placeholder">&#9638;</span> }<span><strong>{{ producto.marca || 'Sin marca' }}</strong><small>{{ producto.modelo || 'Sin modelo' }}</small></span></div></td><td><span class="category-label">{{ producto.categoria || 'Sin categoría' }}</span></td><td class="price">${{ producto.precio ?? 0 }}</td><td>{{ producto.stock ?? 0 }} <small class="muted">unid.</small></td><td><span class="stock-badge" [class]="'stock-badge--' + estadoStock(producto)"><i></i>{{ etiquetaStock(producto) }}</span></td><td><details class="actions-menu"><summary aria-label="Acciones para {{ producto.marca }} {{ producto.modelo }}">&#8942;</summary><div><button type="button" (click)="prepararEdicion(producto)">Editar</button><button type="button" (click)="duplicarProducto(producto)">Duplicar</button><button type="button" (click)="verProducto(producto)">Ver producto</button><button class="danger-text" type="button" (click)="eliminarProducto('' + producto.id)">Eliminar</button></div></details></td></tr>
+              } @empty { <tr><td colspan="6"><div class="empty-state"><span aria-hidden="true">&#9906;</span><strong>{{ hayFiltrosActivos ? 'No encontramos productos' : 'Todavía no hay productos' }}</strong><p>{{ hayFiltrosActivos ? 'Probá ajustando los filtros de búsqueda.' : 'Creá tu primer producto para comenzar a organizar el catálogo.' }}</p></div></td></tr> }
+            </tbody></table></div>
+          } @else {
+            <div class="product-grid">@for (producto of productosFiltrados; track producto.id) { <article class="product-card"><div class="product-card__image">@if (producto.imagen_url) { <img [src]="producto.imagen_url" [alt]="producto.marca + ' ' + producto.modelo" /> } @else { <span>Sin imagen</span> }<details class="actions-menu"><summary aria-label="Acciones">&#8942;</summary><div><button type="button" (click)="prepararEdicion(producto)">Editar</button><button type="button" (click)="duplicarProducto(producto)">Duplicar</button><button type="button" (click)="verProducto(producto)">Ver producto</button><button class="danger-text" type="button" (click)="eliminarProducto('' + producto.id)">Eliminar</button></div></details></div><div class="product-card__body"><span class="category-label">{{ producto.categoria || 'Sin categoría' }}</span><h3>{{ producto.marca || 'Sin marca' }} {{ producto.modelo || 'Sin modelo' }}</h3><div><strong class="price">${{ producto.precio ?? 0 }}</strong><span>{{ producto.stock ?? 0 }} unid.</span></div><span class="stock-badge" [class]="'stock-badge--' + estadoStock(producto)"><i></i>{{ etiquetaStock(producto) }}</span></div></article> } @empty { <div class="empty-state"><span aria-hidden="true">&#9906;</span><strong>No encontramos productos</strong><p>Probá ajustando los filtros de búsqueda.</p></div> }</div>
+          }
+        </section>
 
-		<button type="submit" [disabled]="guardando">
-			{{ guardando ? 'Guardando...' : 'Guardar producto' }}
-		</button>
-	</form>
-  } @else {
-	<form class="producto-form login-form" (ngSubmit)="login()" novalidate>
-		<section class="producto-form__section" aria-labelledby="login-titulo">
-			<h2 id="login-titulo">Iniciar sesión</h2>
-			<label>
-				Email
-				<input type="email" name="email" [(ngModel)]="email" required autocomplete="email" />
-			</label>
-			<label>
-				Contraseña
-				<input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" />
-			</label>
-			<button type="submit">Ingresar</button>
-		</section>
-	</form>
-  }
-</main>
+        <section class="form-section" id="formulario-producto" aria-labelledby="formulario-titulo">
+          <div class="section-heading"><div><p class="eyebrow">{{ productoEditandoId ? 'Edición' : 'Alta de producto' }}</p><h2 id="formulario-titulo">{{ productoEditandoId ? 'Editar producto' : 'Nuevo producto' }}</h2></div>@if (productoEditandoId) { <button class="button button--quiet" type="button" (click)="cancelarEdicion(fileInput)">Cancelar edición</button> }</div>
+          <form class="product-form" [formGroup]="productoForm" (ngSubmit)="onSubmit(fileInput)" novalidate>
+            <section class="form-card"><h3>Identificación</h3><p class="card-description">Datos principales para identificar el producto en el catálogo.</p><div class="form-grid"><label>Categoría *<select formControlName="categoria"><option value="" disabled>Seleccioná una categoría</option><option value="notebook">Notebook</option><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="smartphone">Smartphone</option><option value="accesorios">Accesorios</option></select></label><label>Marca *<input type="text" formControlName="marca" placeholder="Ej. Lenovo" /></label><label>Modelo *<input type="text" formControlName="modelo" placeholder="Ej. ThinkPad E14" /></label></div></section>
+            <section class="form-card"><h3>Imagen del producto</h3><p class="card-description">Usá una imagen clara del equipo. Formatos aceptados: JPG, PNG o WEBP.</p><label class="upload-area">@if (vistaPreviaImagen) { <img class="upload-preview" [src]="vistaPreviaImagen" alt="Vista previa del producto" /><span class="upload-change">Cambiar imagen</span> } @else { <span class="upload-icon">&#9638;</span><strong>Arrastrá una imagen o seleccioná un archivo</strong><small>Máximo recomendado: 5 MB</small> }<input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" /></label>@if (archivoImagen) { <p class="file-name">Archivo seleccionado: {{ archivoImagen.name }}</p> }</section>
+            <section class="form-card"><h3>Especificaciones técnicas</h3><p class="card-description">Completá los datos que correspondan a la categoría elegida.</p><div class="form-grid">@if (productoForm.controls.categoria.value !== 'accesorios') { <label>Procesador<input type="text" formControlName="procesador" placeholder="Ej. Intel Core i5" /></label><label>Memoria RAM<input type="text" formControlName="memoria_ram" placeholder="Ej. 16 GB" /></label><label>Almacenamiento<input type="text" formControlName="disco" placeholder="Ej. SSD 512 GB" /></label> } @if (productoForm.controls.categoria.value === 'notebook' || productoForm.controls.categoria.value === 'desktop') { <label>GPU<input type="text" formControlName="gpu" placeholder="Ej. NVIDIA RTX 4060" /></label> } @if (productoForm.controls.categoria.value !== 'desktop' && productoForm.controls.categoria.value !== 'accesorios') { <label>Batería<input type="text" formControlName="bateria" placeholder="Ej. 50 Wh" /></label><label>Pantalla (pulgadas)<input type="number" formControlName="pulgadas" min="0" step="0.1" inputmode="decimal" /></label> } @if (productoForm.controls.categoria.value === 'accesorios') { <label>Tipo y compatibilidad<input type="text" formControlName="detalles_extras" placeholder="Ej. Mouse inalámbrico, universal" /></label> } @if (productoForm.controls.categoria.value !== 'accesorios') { <label class="field-wide">Detalles extras<textarea formControlName="detalles_extras" rows="3" placeholder="Ingresá información adicional del equipo"></textarea></label> }</div></section>
+            <section class="form-card"><h3>Información comercial</h3><p class="card-description">Definí el precio y la disponibilidad actual.</p><div class="form-grid form-grid--commercial"><label>Precio *<div class="input-prefix"><span>$</span><input type="number" formControlName="precio" min="0" step="0.01" inputmode="decimal" /></div>@if (productoForm.controls.precio.invalid && productoForm.controls.precio.touched) { <small class="form-error">Ingresá un precio válido.</small> }</label><label>Stock *<input type="number" formControlName="stock" min="0" step="1" inputmode="numeric" />@if (productoForm.controls.stock.invalid && productoForm.controls.stock.touched) { <small class="form-error">Ingresá una cantidad válida.</small> }</label></div></section>
+            <div class="form-actions"><span class="unsaved-status">● {{ productoEditandoId ? 'Editando producto' : 'Nuevo producto' }}</span><div><button class="button button--quiet" type="button" (click)="cancelarEdicion(fileInput)">Cancelar</button><button class="button button--primary" type="submit" [disabled]="guardando">{{ guardando ? 'Guardando...' : productoEditandoId ? 'Guardar cambios' : 'Guardar producto' }} <span aria-hidden="true">&#8594;</span></button></div></div>
+          </form>
+        </section>
+      </div>
+      } @else if (seccionActiva === 'inicio') {
+        <section class="placeholder-section" aria-labelledby="inicio-titulo">
+          <span class="placeholder-section__icon" aria-hidden="true">&#8962;</span>
+          <p class="eyebrow">Espacio de trabajo</p>
+          <h1 id="inicio-titulo">Inicio</h1>
+          <p>El resumen general del panel estará disponible próximamente.</p>
+        </section>
+      } @else if (seccionActiva === 'categorias') {
+        <section class="placeholder-section" aria-labelledby="categorias-titulo">
+          <span class="placeholder-section__icon" aria-hidden="true">&#9672;</span>
+          <p class="eyebrow">Organización</p>
+          <h1 id="categorias-titulo">Categorías</h1>
+          <p>La gestión de categorías está en construcción.</p>
+        </section>
+      } @else if (seccionActiva === 'inventario') {
+        <section class="placeholder-section" aria-labelledby="inventario-titulo">
+          <span class="placeholder-section__icon" aria-hidden="true">&#9776;</span>
+          <p class="eyebrow">Control de stock</p>
+          <h1 id="inventario-titulo">Inventario</h1>
+          <p>El control avanzado de inventario estará disponible próximamente.</p>
+        </section>
+      } @else if (seccionActiva === 'configuracion') {
+        <section class="placeholder-section" aria-labelledby="configuracion-titulo">
+          <span class="placeholder-section__icon" aria-hidden="true">&#9881;</span>
+          <p class="eyebrow">Preferencias</p>
+          <h1 id="configuracion-titulo">Configuración</h1>
+          <p>Las preferencias del panel están en construcción.</p>
+        </section>
+      }
+    </main>
+  </div>
+}
+
+@if (productoPendienteEliminar; as productoEliminar) {
+  <div class="modal-backdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="eliminar-titulo">
+      <div class="modal__icon modal__icon--danger">!</div>
+      <h2 id="eliminar-titulo">¿Eliminar producto?</h2>
+      <p>Vas a eliminar <strong>{{ productoEliminar.marca }} {{ productoEliminar.modelo }}</strong> del catálogo.</p>
+      @if ((productoEliminar.stock ?? 0) > 0) { <p class="modal__warning">Este producto tiene {{ productoEliminar.stock }} unidades en stock activo.</p> }
+      <div class="modal__actions"><button class="button button--quiet" type="button" (click)="cancelarEliminacion()">Cancelar</button><button class="button button--danger" type="button" (click)="confirmarEliminacion()">Eliminar producto</button></div>
+    </section>
+  </div>
+}
+
+@if (productoSeleccionado; as productoDetalle) {
+  <div class="modal-backdrop" role="presentation">
+    <section class="modal modal--detail" role="dialog" aria-modal="true" aria-labelledby="detalle-titulo">
+      <button class="modal__close" type="button" aria-label="Cerrar detalle" (click)="cerrarDetalle()">&times;</button>
+      @if (productoDetalle.imagen_url) { <img class="modal__image" [src]="productoDetalle.imagen_url" [alt]="productoDetalle.marca + ' ' + productoDetalle.modelo" /> }
+      <span class="category-label">{{ productoDetalle.categoria || 'Sin categoría' }}</span>
+      <h2 id="detalle-titulo">{{ productoDetalle.marca }} {{ productoDetalle.modelo }}</h2>
+      <dl class="detail-list"><dt>Procesador</dt><dd>{{ productoDetalle.procesador || 'No especificado' }}</dd><dt>Memoria RAM</dt><dd>{{ productoDetalle.memoria_ram || 'No especificada' }}</dd><dt>Almacenamiento</dt><dd>{{ productoDetalle.disco || 'No especificado' }}</dd><dt>Stock</dt><dd>{{ productoDetalle.stock ?? 0 }} unidades</dd><dt>Precio</dt><dd>${{ productoDetalle.precio ?? 0 }}</dd></dl>
+    </section>
+  </div>
+}
