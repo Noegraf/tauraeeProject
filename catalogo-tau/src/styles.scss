@@ -1,1 +1,52 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+	--tau-accent: #c8d400;
+	--tau-accent-dark: #8f9900;
+	--tau-accent-ink: #252900;
+	--tau-bg: #f7f7f8;
+	--tau-surface: #ffffff;
+	--tau-border: #e5e7eb;
+	--tau-text: #18181b;
+	--tau-muted: #71717a;
+	--tau-success: #217a4b;
+	--tau-success-bg: #e9f6ee;
+	--tau-warning: #a36208;
+	--tau-warning-bg: #fff4df;
+	--tau-danger: #b43f3f;
+	--tau-danger-bg: #fcebea;
+	--tau-radius-sm: 8px;
+	--tau-radius-md: 12px;
+	--tau-shadow-sm: 0 4px 16px rgb(24 24 27 / 5%);
+	--tau-shadow-md: 0 14px 36px rgb(24 24 27 / 9%);
+	--tau-focus: 0 0 0 3px rgb(200 212 0 / 28%);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html {
+	background: var(--tau-bg);
+	color: var(--tau-text);
+	font-family: "Avenir Next", "Segoe UI", sans-serif;
+}
+
+body {
+	margin: 0;
+	background: var(--tau-bg);
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+	outline: 0;
+	box-shadow: var(--tau-focus);
+}

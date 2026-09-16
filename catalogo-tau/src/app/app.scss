@@ -4,12 +4,12 @@
 	justify-content: space-between;
 	gap: 1rem;
 	padding: 1rem clamp(1rem, 5vw, 4.5rem);
-	border-bottom: 1px solid #dce6e1;
-	background: #fff;
+	border-bottom: 1px solid var(--tau-border);
+	background: var(--tau-surface);
 }
 
 .site-header__brand {
-	color: #153d34;
+	color: var(--tau-text);
 	font-size: 1.1rem;
 	font-weight: 800;
 	text-decoration: none;
@@ -32,8 +32,8 @@ nav a {
 
 nav a:hover,
 nav a.is-active {
-	border-bottom-color: #16705d;
-	color: #16705d;
+	border-bottom-color: var(--tau-accent);
+	color: var(--tau-accent-ink);
 }
 
 @media (max-width: 520px) {
