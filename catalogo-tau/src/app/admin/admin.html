@@ -1,0 +1,118 @@
+<main class="admin-page">
+	<header class="admin-page__header">
+		<p class="admin-page__eyebrow">Panel interno</p>
+		<h1>Agregar producto</h1>
+		<p>Cargá la información técnica y comercial del nuevo producto.</p>
+	</header>
+
+	@if (sesionActiva) {
+	<form class="producto-form" [formGroup]="productoForm" (ngSubmit)="onSubmit(fileInput)" novalidate>
+		<section class="producto-form__section" aria-labelledby="identificacion-titulo">
+			<h2 id="identificacion-titulo">Identificación</h2>
+			<div class="producto-form__grid">
+				<label>
+					Categoría
+					<select formControlName="categoria">
+						<option value="" disabled>Seleccioná una categoría</option>
+						<option value="notebook">Notebook</option>
+						<option value="desktop">Desktop</option>
+						<option value="tablet">Tablet</option>
+						<option value="smartphone">Smartphone</option>
+						<option value="accesorios">Accesorios</option>
+					</select>
+				</label>
+				<label>
+					Marca
+					<input type="text" formControlName="marca" placeholder="Ej. Lenovo" />
+				</label>
+				<label>
+					Modelo
+					<input type="text" formControlName="modelo" placeholder="Ej. ThinkPad E14" />
+				</label>
+			</div>
+		</section>
+
+		<section class="producto-form__section" aria-labelledby="tecnico-titulo">
+			<h2 id="tecnico-titulo">Especificaciones técnicas</h2>
+			<div class="producto-form__grid">
+				<label>
+					Procesador
+					<input type="text" formControlName="procesador" placeholder="Ej. Intel Core i5" />
+				</label>
+				<label>
+					Memoria RAM
+					<input type="text" formControlName="memoria_ram" placeholder="Ej. 16 GB" />
+				</label>
+				<label>
+					Disco
+					<input type="text" formControlName="disco" placeholder="Ej. SSD 512 GB" />
+				</label>
+				<label>
+					GPU
+					<input type="text" formControlName="gpu" placeholder="Ej. NVIDIA RTX 4060" />
+				</label>
+				<label>
+					Batería
+					<input type="text" formControlName="bateria" placeholder="Ej. 50 Wh" />
+				</label>
+				<label>
+					Pantalla (pulgadas)
+					<input type="number" formControlName="pulgadas" min="1" step="0.1" />
+				</label>
+				<label class="producto-form__field--wide">
+					Detalles extras
+					<textarea formControlName="detalles_extras" rows="4" placeholder="Ingresá información adicional del equipo"></textarea>
+				</label>
+			</div>
+		</section>
+
+		<section class="producto-form__section" aria-labelledby="imagen-titulo">
+			<h2 id="imagen-titulo">Imagen del producto</h2>
+			<label>
+				Foto del equipo
+				<input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" />
+			</label>
+		</section>
+
+		<section class="producto-form__section" aria-labelledby="comercial-titulo">
+			<h2 id="comercial-titulo">Información comercial</h2>
+			<div class="producto-form__grid producto-form__grid--compact">
+				<label>
+					Precio
+					<input type="number" formControlName="precio" min="0" step="0.01" />
+				</label>
+				<label>
+					Stock
+					<input type="number" formControlName="stock" min="0" step="1" />
+				</label>
+			</div>
+		</section>
+
+		@if (mensaje) {
+			<p class="form-message form-message--success" role="status">{{ mensaje }}</p>
+		}
+		@if (error) {
+			<p class="form-message form-message--error" role="alert">{{ error }}</p>
+		}
+
+		<button type="submit" [disabled]="guardando">
+			{{ guardando ? 'Guardando...' : 'Guardar producto' }}
+		</button>
+	</form>
+  } @else {
+	<form class="producto-form login-form" (ngSubmit)="login()" novalidate>
+		<section class="producto-form__section" aria-labelledby="login-titulo">
+			<h2 id="login-titulo">Iniciar sesión</h2>
+			<label>
+				Email
+				<input type="email" name="email" [(ngModel)]="email" required autocomplete="email" />
+			</label>
+			<label>
+				Contraseña
+				<input type="password" name="password" [(ngModel)]="password" required autocomplete="current-password" />
+			</label>
+			<button type="submit">Ingresar</button>
+		</section>
+	</form>
+  }
+</main>

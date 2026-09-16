@@ -1,0 +1,47 @@
+<div class="catalogo-container">
+  <header class="catalogo-header">
+    <h1>Catálogo TAU</h1>
+    <p>Equipos reacondicionados con impacto social y ambiental.</p>
+  </header>
+
+  <main class="grilla-productos">
+    <!-- El @for recorre tu array de productos y crea una tarjeta por cada uno -->
+    @for (producto of productos; track producto.id) {
+      <article class="producto-card">
+        
+        <div class="imagen-container">
+          <!-- Si hay URL de imagen, la muestra. Si no, muestra un recuadro gris -->
+          @if (producto.imagen_url) {
+            <img [src]="producto.imagen_url" [alt]="producto.modelo">
+          } @else {
+            <div class="placeholder-imagen">
+              <span>Sin foto</span>
+            </div>
+          }
+          <span class="badge-stock">{{ producto.stock }}</span>
+        </div>
+
+        <div class="producto-info">
+          <span class="categoria">{{ producto.categoria | uppercase }}</span>
+          <h2>{{ producto.marca }} {{ producto.modelo }}</h2>
+          
+          <ul class="detalles-tecnicos">
+            @if (producto.procesador) { <li><strong>CPU:</strong> {{ producto.procesador }}</li> }
+            @if (producto.memoria_ram) { <li><strong>RAM:</strong> {{ producto.memoria_ram }}</li> }
+            @if (producto.disco) { <li><strong>Almacenamiento:</strong> {{ producto.disco }}</li> }
+          </ul>
+
+          <div class="producto-footer">
+            <span class="precio">${{ producto.precio }}</span>
+            <!-- Este botón después lo podemos conectar al WhatsApp de la cooperativa -->
+<a class="btn-consultar" [href]="'https://wa.me/5493412012364?text=Hola,%20me%20interesa%20consultar%20por%20el%20equipo%20reacondicionado:%20' + producto.marca + '%20' + producto.modelo" target="_blank">Consultar</a>          </div>
+        </div>
+
+      </article>
+    } @empty {
+      <div class="empty-state">
+        <p>No hay equipos disponibles en este momento.</p>
+      </div>
+    }
+  </main>
+</div>
