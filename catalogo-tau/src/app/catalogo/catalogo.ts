@@ -13,6 +13,7 @@ export class Catalogo implements OnInit {
   public categorias = ['todas', 'notebook', 'desktop', 'tablet', 'smartphone', 'accesorios'];
   public categoriaSeleccionada = 'todas';
   public productosFiltrados: Producto[] = [];
+  public mostrarFiltrosMobile = false;
   public cargando = true;
   public error = '';
 
@@ -40,6 +41,7 @@ export class Catalogo implements OnInit {
 
   filtrarPorCategoria(categoria: string): void {
     this.categoriaSeleccionada = categoria;
+    this.mostrarFiltrosMobile = false;
 
     if (categoria === 'todas') {
       this.productosFiltrados = [...this.productos];
@@ -50,5 +52,9 @@ export class Catalogo implements OnInit {
     }
 
     this.cdr.detectChanges();
+  }
+
+  toggleFiltros(): void {
+    this.mostrarFiltrosMobile = !this.mostrarFiltrosMobile;
   }
 }

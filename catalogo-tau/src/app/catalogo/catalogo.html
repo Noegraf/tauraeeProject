@@ -4,7 +4,12 @@
     <p>Equipos reacondicionados con impacto social y ambiental.</p>
   </header>
 
-  <div class="filtros-container" aria-label="Filtrar por categoría">
+  <button class="btn-toggle-filtros mobile-only" type="button" (click)="toggleFiltros()">
+    <span>Filtros</span>
+    <span>{{ mostrarFiltrosMobile ? '▲' : '▼' }}</span>
+  </button>
+
+  <div class="filtros-container" [class.abierto]="mostrarFiltrosMobile" aria-label="Filtrar por categoría">
     @for (categoria of categorias; track categoria) {
       <button
         class="btn-filtro"
