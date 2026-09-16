@@ -50,7 +50,7 @@
       @if (error) { <div class="toast toast--error" role="alert"><span aria-hidden="true">!</span>{{ error }}<button type="button" aria-label="Cerrar notificación" (click)="cerrarNotificacion()">&times;</button></div> }
 
       @if (seccionActiva === 'productos') {
-      <div class="content-wrap">
+      <div class="vista-productos content-wrap">
         <header class="page-heading"><div><p class="eyebrow">Catálogo</p><h1>Productos</h1><p>Gestioná tu catálogo e inventario</p></div><button class="button button--primary" type="button" (click)="cancelarEdicion(fileInput); irAlFormulario()"><span aria-hidden="true">+</span> Nuevo producto</button></header>
 
         <section class="stats-grid" aria-label="Resumen de inventario">
@@ -78,28 +78,120 @@
         <section class="form-section" id="formulario-producto" aria-labelledby="formulario-titulo">
           <div class="section-heading"><div><p class="eyebrow">{{ productoEditandoId ? 'Edición' : 'Alta de producto' }}</p><h2 id="formulario-titulo">{{ productoEditandoId ? 'Editar producto' : 'Nuevo producto' }}</h2></div>@if (productoEditandoId) { <button class="button button--quiet" type="button" (click)="cancelarEdicion(fileInput)">Cancelar edición</button> }</div>
           <form class="product-form" [formGroup]="productoForm" (ngSubmit)="onSubmit(fileInput)" novalidate>
-            <section class="form-card"><h3>Identificación</h3><p class="card-description">Datos principales para identificar el producto en el catálogo.</p><div class="form-grid"><label>Categoría *<select formControlName="categoria"><option value="" disabled>Seleccioná una categoría</option><option value="notebook">Notebook</option><option value="desktop">Desktop</option><option value="tablet">Tablet</option><option value="smartphone">Smartphone</option><option value="accesorios">Accesorios</option></select></label><label>Marca *<input type="text" formControlName="marca" placeholder="Ej. Lenovo" /></label><label>Modelo *<input type="text" formControlName="modelo" placeholder="Ej. ThinkPad E14" /></label></div></section>
+              <section class="form-card"><h3>Identificación</h3><p class="card-description">Datos principales para identificar el producto en el catálogo.</p><div class="form-grid"><label>Categoría *<select formControlName="categoria"><option value="">Seleccioná una categoría</option>@for (cat of listaCategorias; track cat.id) { <option [value]="cat.nombre">{{ cat.nombre }}</option> }</select></label><label>Marca *<input type="text" formControlName="marca" placeholder="Ej. Lenovo" /></label><label>Modelo *<input type="text" formControlName="modelo" placeholder="Ej. ThinkPad E14" /></label></div></section>
             <section class="form-card"><h3>Imagen del producto</h3><p class="card-description">Usá una imagen clara del equipo. Formatos aceptados: JPG, PNG o WEBP.</p><label class="upload-area">@if (vistaPreviaImagen) { <img class="upload-preview" [src]="vistaPreviaImagen" alt="Vista previa del producto" /><span class="upload-change">Cambiar imagen</span> } @else { <span class="upload-icon">&#9638;</span><strong>Arrastrá una imagen o seleccioná un archivo</strong><small>Máximo recomendado: 5 MB</small> }<input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" /></label>@if (archivoImagen) { <p class="file-name">Archivo seleccionado: {{ archivoImagen.name }}</p> }</section>
-            <section class="form-card"><h3>Especificaciones técnicas</h3><p class="card-description">Completá los datos que correspondan a la categoría elegida.</p><div class="form-grid">@if (productoForm.controls.categoria.value !== 'accesorios') { <label>Procesador<input type="text" formControlName="procesador" placeholder="Ej. Intel Core i5" /></label><label>Memoria RAM<input type="text" formControlName="memoria_ram" placeholder="Ej. 16 GB" /></label><label>Almacenamiento<input type="text" formControlName="disco" placeholder="Ej. SSD 512 GB" /></label> } @if (productoForm.controls.categoria.value === 'notebook' || productoForm.controls.categoria.value === 'desktop') { <label>GPU<input type="text" formControlName="gpu" placeholder="Ej. NVIDIA RTX 4060" /></label> } @if (productoForm.controls.categoria.value !== 'desktop' && productoForm.controls.categoria.value !== 'accesorios') { <label>Batería<input type="text" formControlName="bateria" placeholder="Ej. 50 Wh" /></label><label>Pantalla (pulgadas)<input type="number" formControlName="pulgadas" min="0" step="0.1" inputmode="decimal" /></label> } @if (productoForm.controls.categoria.value === 'accesorios') { <label>Tipo y compatibilidad<input type="text" formControlName="detalles_extras" placeholder="Ej. Mouse inalámbrico, universal" /></label> } @if (productoForm.controls.categoria.value !== 'accesorios') { <label class="field-wide">Detalles extras<textarea formControlName="detalles_extras" rows="3" placeholder="Ingresá información adicional del equipo"></textarea></label> }</div></section>
+            <section class="form-card"><h3>Especificaciones técnicas</h3><p class="card-description">Completá los datos técnicos del producto.</p><div class="form-grid"><label>Procesador<input type="text" formControlName="procesador" placeholder="Ej. Intel Core i5" /></label><label>Memoria RAM<input type="text" formControlName="memoria_ram" placeholder="Ej. 16 GB" /></label><label>Almacenamiento<input type="text" formControlName="disco" placeholder="Ej. SSD 512 GB" /></label><label>GPU<input type="text" formControlName="gpu" placeholder="Ej. NVIDIA RTX 4060" /></label><label>Batería<input type="text" formControlName="bateria" placeholder="Ej. 50 Wh" /></label><label>Pantalla (pulgadas)<input type="number" formControlName="pulgadas" min="0" step="0.1" inputmode="decimal" /></label><label class="field-wide">Detalles extras<textarea formControlName="detalles_extras" rows="3" placeholder="Ingresá información adicional del equipo"></textarea></label></div></section>
             <section class="form-card"><h3>Información comercial</h3><p class="card-description">Definí el precio y la disponibilidad actual.</p><div class="form-grid form-grid--commercial"><label>Precio *<div class="input-prefix"><span>$</span><input type="number" formControlName="precio" min="0" step="0.01" inputmode="decimal" /></div>@if (productoForm.controls.precio.invalid && productoForm.controls.precio.touched) { <small class="form-error">Ingresá un precio válido.</small> }</label><label>Stock *<input type="number" formControlName="stock" min="0" step="1" inputmode="numeric" />@if (productoForm.controls.stock.invalid && productoForm.controls.stock.touched) { <small class="form-error">Ingresá una cantidad válida.</small> }</label></div></section>
             <div class="form-actions"><span class="unsaved-status">● {{ productoEditandoId ? 'Editando producto' : 'Nuevo producto' }}</span><div><button class="button button--quiet" type="button" (click)="cancelarEdicion(fileInput)">Cancelar</button><button class="button button--primary" type="submit" [disabled]="guardando">{{ guardando ? 'Guardando...' : productoEditandoId ? 'Guardar cambios' : 'Guardar producto' }} <span aria-hidden="true">&#8594;</span></button></div></div>
           </form>
         </section>
       </div>
       } @else if (seccionActiva === 'inicio') {
-        <section class="placeholder-section" aria-labelledby="inicio-titulo">
-          <span class="placeholder-section__icon" aria-hidden="true">&#8962;</span>
-          <p class="eyebrow">Espacio de trabajo</p>
-          <h1 id="inicio-titulo">Inicio</h1>
-          <p>El resumen general del panel estará disponible próximamente.</p>
+        <section class="dashboard-section" aria-labelledby="inicio-titulo">
+          <header class="dashboard-heading">
+            <p class="eyebrow">Resumen del catálogo</p>
+            <h1 id="inicio-titulo">¡Hola! Este es el resumen de tu catálogo hoy.</h1>
+            <p>Revisá el estado de tus productos y detectá rápidamente qué necesita reposición.</p>
+          </header>
+
+          <div class="dashboard-stats" aria-label="Estadísticas del catálogo">
+            <article class="dashboard-stat dashboard-stat--blue">
+              <span class="dashboard-stat__icon" aria-hidden="true">&#128230;</span>
+              <span class="dashboard-stat__label">Total de productos</span>
+              <strong>{{ totalProductos }}</strong>
+              <small>En el catálogo</small>
+            </article>
+            <article class="dashboard-stat dashboard-stat--red">
+              <span class="dashboard-stat__icon" aria-hidden="true">&#9679;</span>
+              <span class="dashboard-stat__label">Sin stock</span>
+              <strong>{{ productosSinStock }}</strong>
+              <small>Requieren reposición</small>
+            </article>
+            <article class="dashboard-stat dashboard-stat--amber">
+              <span class="dashboard-stat__icon" aria-hidden="true">&#9888;</span>
+              <span class="dashboard-stat__label">Bajo stock</span>
+              <strong>{{ productosBajoStock }}</strong>
+              <small>Hasta 3 unidades</small>
+            </article>
+            <article class="dashboard-stat dashboard-stat--purple">
+              <span class="dashboard-stat__icon" aria-hidden="true">&#36;</span>
+              <span class="dashboard-stat__label">Valor inventariado</span>
+              <strong>${{ totalValorizado | number:'1.0-0' }}</strong>
+              <small>Precio x stock</small>
+            </article>
+          </div>
+
+          <section class="reposition-panel" aria-labelledby="reposicion-titulo">
+            <div class="section-heading">
+              <div>
+                <h2 id="reposicion-titulo">Requieren atención</h2>
+                <p>Productos sin stock o con existencias bajas.</p>
+              </div>
+              <span class="reposition-count">{{ productosParaReponer.length }} productos</span>
+            </div>
+            <div class="reposition-table-wrapper">
+              <table class="reposition-table">
+                <thead><tr><th>Producto</th><th>Stock</th><th>Estado</th><th>Precio unitario</th></tr></thead>
+                <tbody>
+                  @for (producto of productosParaReponer; track producto.id) {
+                    <tr>
+                      <td><strong>{{ producto.marca || 'Sin marca' }}</strong><small>{{ producto.modelo || 'Sin modelo' }}</small></td>
+                      <td>{{ producto.stock ?? 0 }}</td>
+                      <td><span class="stock-badge" [class]="'stock-badge--' + estadoStock(producto)"><i></i>{{ etiquetaStock(producto) }}</span></td>
+                      <td>${{ producto.precio ?? 0 }}</td>
+                    </tr>
+                  } @empty {
+                    <tr><td class="reposition-empty" colspan="4"><span aria-hidden="true">&#10003;</span> Todo el inventario tiene stock suficiente.</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
         </section>
       } @else if (seccionActiva === 'categorias') {
-        <section class="placeholder-section" aria-labelledby="categorias-titulo">
-          <span class="placeholder-section__icon" aria-hidden="true">&#9672;</span>
-          <p class="eyebrow">Organización</p>
-          <h1 id="categorias-titulo">Categorías</h1>
-          <p>La gestión de categorías está en construcción.</p>
+          <div class="vista-categorias categories-section">
+          <section aria-labelledby="categorias-titulo">
+            <header class="categories-heading">
+              <div>
+                <p class="eyebrow">Organización</p>
+                <h1 id="categorias-titulo">Gestión de Categorías</h1>
+                <p>Administrá las categorías disponibles para tu catálogo.</p>
+              </div>
+            </header>
+
+            <form class="category-form" (ngSubmit)="guardarNuevaCategoria()" novalidate>
+              <label for="nueva-categoria">Nueva categoría</label>
+              <div class="category-form__controls">
+                <input id="nueva-categoria" name="nuevaCategoria" type="text" [(ngModel)]="nuevaCategoriaNombre" placeholder="Ej. Monitores" />
+                <button class="button button--primary" type="submit">Agregar categoría</button>
+              </div>
+            </form>
+
+            <div class="categories-list">
+              <div class="categories-list__header"><h2>Categorías disponibles</h2><span>{{ listaCategorias.length }}</span></div>
+              @for (categoria of listaCategorias; track categoria.id) {
+                <div class="category-row">
+                  @if (categoriaEditandoId === categoria.id) {
+                    <input class="category-row__input" type="text" [(ngModel)]="categoriaEditandoNombre" [name]="'categoria-' + categoria.id" aria-label="Nombre de categoría" />
+                    <div class="category-row__actions">
+                      <button class="button button--primary" type="button" (click)="guardarEdicionCategoria()">Guardar</button>
+                      <button class="button button--quiet" type="button" (click)="cancelarEdicionCategoria()">Cancelar</button>
+                    </div>
+                  } @else {
+                    <span><strong>{{ categoria.nombre }}</strong>@if (categoria.visible === false) { <small class="category-hidden-label">Oculta del catálogo</small> }</span>
+                    <div class="category-row__actions">
+                      <button class="button button--quiet" type="button" (click)="iniciarEdicionCategoria(categoria)">Editar</button>
+                      <button class="button button--quiet" type="button" (click)="alternarVisibilidadCategoria(categoria)">{{ categoria.visible === false ? 'Mostrar' : 'Ocultar' }}</button>
+                      <button class="button button--danger category-row__delete" type="button" (click)="borrarCategoria(categoria.id)">Eliminar</button>
+                    </div>
+                  }
+                </div>
+              } @empty {
+                <p class="category-empty">Todavía no hay categorías cargadas.</p>
+              }
+            </div>
         </section>
+        </div>
       } @else if (seccionActiva === 'inventario') {
         <section class="placeholder-section" aria-labelledby="inventario-titulo">
           <span class="placeholder-section__icon" aria-hidden="true">&#9776;</span>
@@ -139,6 +231,17 @@
       <span class="category-label">{{ productoDetalle.categoria || 'Sin categoría' }}</span>
       <h2 id="detalle-titulo">{{ productoDetalle.marca }} {{ productoDetalle.modelo }}</h2>
       <dl class="detail-list"><dt>Procesador</dt><dd>{{ productoDetalle.procesador || 'No especificado' }}</dd><dt>Memoria RAM</dt><dd>{{ productoDetalle.memoria_ram || 'No especificada' }}</dd><dt>Almacenamiento</dt><dd>{{ productoDetalle.disco || 'No especificado' }}</dd><dt>Stock</dt><dd>{{ productoDetalle.stock ?? 0 }} unidades</dd><dt>Precio</dt><dd>${{ productoDetalle.precio ?? 0 }}</dd></dl>
+    </section>
+  </div>
+}
+
+@if (categoriaPendienteEliminar; as categoriaEliminar) {
+  <div class="modal-backdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="eliminar-categoria-titulo">
+      <div class="modal__icon modal__icon--danger">!</div>
+      <h2 id="eliminar-categoria-titulo">¿Eliminar categoría?</h2>
+      <p>Vas a eliminar <strong>{{ categoriaEliminar.nombre }}</strong> de las categorías disponibles.</p>
+      <div class="modal__actions"><button class="button button--quiet" type="button" (click)="cancelarEliminacionCategoria()">Cancelar</button><button class="button button--danger" type="button" (click)="confirmarEliminacionCategoria()">Eliminar categoría</button></div>
     </section>
   </div>
 }

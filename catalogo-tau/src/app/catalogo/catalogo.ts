@@ -10,12 +10,22 @@ import { UpperCasePipe } from '@angular/common';
 })
 export class Catalogo implements OnInit {
   public productos: Producto[] = [];
-  public categorias = ['todas', 'notebook', 'desktop', 'tablet', 'smartphone', 'accesorios'];
+  public listaCategorias: any[] = [];
   public categoriaSeleccionada = 'todas';
   public productosFiltrados: Producto[] = [];
   public mostrarFiltrosMobile = false;
   public cargando = true;
   public error = '';
+
+  get categorias(): string[] {
+    return [
+      'todas',
+      ...this.listaCategorias
+        .filter((categoria) => categoria.visible !== false)
+        .map((categoria) => categoria.nombre)
+        .filter((nombre): nombre is string => Boolean(nombre)),
+    ];
+  }
 
   private readonly supabase = inject(SupabaseService);
   // 👇 1. Inyectamos la herramienta para forzar el dibujo en pantalla
@@ -26,6 +36,7 @@ export class Catalogo implements OnInit {
 
     try {
       this.productos = await this.supabase.getProductos();
+      this.listaCategorias = await this.supabase.getCategorias();
       console.log('Productos obtenidos:', this.productos);
       this.productosFiltrados = [...this.productos];
       

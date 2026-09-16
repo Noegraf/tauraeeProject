@@ -1,9 +1,10 @@
+import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Producto, SupabaseService } from '../services/supabase.service';
 
 @Component({
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [DecimalPipe, FormsModule, ReactiveFormsModule],
   selector: 'app-admin',
   styleUrl: './admin.scss',
   templateUrl: './admin.html',
@@ -25,7 +26,12 @@ export class Admin implements OnInit {
   public sidebarAbierto = false;
   public seccionActiva: string = 'productos';
   public productoPendienteEliminar: Producto | null = null;
+  public categoriaPendienteEliminar: any | null = null;
   public productoSeleccionado: Producto | null = null;
+  public listaCategorias: any[] = [];
+  public nuevaCategoriaNombre = '';
+  public categoriaEditandoId: string | number | null = null;
+  public categoriaEditandoNombre = '';
 
   public readonly productoForm = this.formBuilder.group({
     categoria: ['', Validators.required],
@@ -62,6 +68,7 @@ export class Admin implements OnInit {
 
     if (this.sesionActiva) {
       await this.cargarProductosAdmin();
+      this.listaCategorias = await this.supabase.getCategorias();
     }
   }
 
@@ -83,6 +90,7 @@ export class Admin implements OnInit {
 
     this.sesionActiva = true;
     await this.cargarProductosAdmin();
+    await this.cargarCategoriasAdmin();
   }
 
   async cerrarSesion(): Promise<void> {
@@ -92,6 +100,7 @@ export class Admin implements OnInit {
     this.password = '';
     this.listaProductos = [];
     this.productoPendienteEliminar = null;
+    this.categoriaPendienteEliminar = null;
     this.productoSeleccionado = null;
     this.sidebarAbierto = false;
     this.seccionActiva = 'productos';
@@ -118,8 +127,106 @@ export class Admin implements OnInit {
     this.listaProductos = data ?? [];
   }
 
+  async cargarCategoriasAdmin(): Promise<void> {
+    try {
+      this.listaCategorias = await this.supabase.getCategorias();
+    } catch (error) {
+      console.error('Error al cargar las categorías:', error);
+      this.mostrarError('No se pudieron cargar las categorías.');
+    }
+  }
+
+  async guardarNuevaCategoria(): Promise<void> {
+    const nombre = this.nuevaCategoriaNombre.trim();
+    if (!nombre) {
+      this.mostrarError('Ingresá un nombre para la categoría.');
+      return;
+    }
+
+    try {
+      await this.supabase.agregarCategoria(nombre);
+      this.listaCategorias = await this.supabase.getCategorias();
+      this.nuevaCategoriaNombre = '';
+      this.mostrarExito('Categoría agregada correctamente.');
+    } catch (error) {
+      console.error('Error al agregar la categoría:', error);
+      this.mostrarError('No se pudo agregar la categoría.');
+    }
+  }
+
+  iniciarEdicionCategoria(categoria: any): void {
+    this.categoriaEditandoId = categoria.id;
+    this.categoriaEditandoNombre = categoria.nombre ?? '';
+  }
+
+  cancelarEdicionCategoria(): void {
+    this.categoriaEditandoId = null;
+    this.categoriaEditandoNombre = '';
+  }
+
+  async guardarEdicionCategoria(): Promise<void> {
+    if (this.categoriaEditandoId === null || !this.categoriaEditandoNombre.trim()) {
+      this.mostrarError('Ingresá un nombre para la categoría.');
+      return;
+    }
+
+    try {
+      await this.supabase.actualizarCategoria(this.categoriaEditandoId, this.categoriaEditandoNombre);
+      this.cancelarEdicionCategoria();
+      await this.cargarCategoriasAdmin();
+      this.mostrarExito('Categoría actualizada correctamente.');
+    } catch (error) {
+      console.error('Error al actualizar la categoría:', error);
+      this.mostrarError('No se pudo actualizar la categoría.');
+    }
+  }
+
+  async alternarVisibilidadCategoria(categoria: any): Promise<void> {
+    const visible = categoria.visible === false;
+
+    try {
+      await this.supabase.actualizarVisibilidadCategoria(categoria.id, visible);
+      await this.cargarCategoriasAdmin();
+      this.mostrarExito(visible ? 'Categoría visible en el catálogo.' : 'Categoría oculta del catálogo.');
+    } catch (error) {
+      console.error('Error al cambiar la visibilidad:', error);
+      this.mostrarError('No se pudo cambiar la visibilidad.');
+    }
+  }
+
+  borrarCategoria(id: string | number): void {
+    this.categoriaPendienteEliminar = this.listaCategorias.find(
+      (categoria) => String(categoria.id) === String(id),
+    ) ?? { id, nombre: 'esta categoría' };
+  }
+
+  cancelarEliminacionCategoria(): void {
+    this.categoriaPendienteEliminar = null;
+  }
+
+  async confirmarEliminacionCategoria(): Promise<void> {
+    const categoria = this.categoriaPendienteEliminar;
+    if (!categoria?.id) {
+      return;
+    }
+
+    try {
+      await this.supabase.eliminarCategoria(categoria.id);
+      this.categoriaPendienteEliminar = null;
+      await this.cargarCategoriasAdmin();
+      this.mostrarExito('Categoría eliminada correctamente.');
+    } catch (error) {
+      console.error('Error al eliminar la categoría:', error);
+      this.mostrarError('No se pudo eliminar la categoría.');
+    }
+  }
+
   get categoriasDisponibles(): string[] {
-    return [...new Set(this.listaProductos.map((producto) => producto.categoria).filter((categoria): categoria is string => Boolean(categoria)))].sort();
+    return this.listaCategorias
+      .filter((categoria) => categoria.visible !== false)
+      .map((categoria) => categoria.nombre)
+      .filter((nombre): nombre is string => Boolean(nombre))
+      .sort();
   }
 
   get productosFiltrados(): Producto[] {
@@ -146,6 +253,34 @@ export class Admin implements OnInit {
 
   get totalDisponibles(): number {
     return this.listaProductos.filter((producto) => this.estadoStock(producto) === 'disponible').length;
+  }
+
+  get totalProductos(): number {
+    return this.listaProductos.length;
+  }
+
+  get productosBajoStock(): number {
+    return this.listaProductos.filter((producto) => {
+      const stock = Number(producto.stock ?? 0);
+      return stock > 0 && stock <= 3;
+    }).length;
+  }
+
+  get productosSinStock(): number {
+    return this.listaProductos.filter((producto) => Number(producto.stock ?? 0) === 0).length;
+  }
+
+  get totalValorizado(): number {
+    return this.listaProductos.reduce(
+      (total, producto) => total + Number(producto.precio ?? 0) * Number(producto.stock ?? 0),
+      0,
+    );
+  }
+
+  get productosParaReponer(): Producto[] {
+    return this.listaProductos
+      .filter((producto) => this.estadoStock(producto) !== 'disponible')
+      .sort((primero, segundo) => Number(primero.stock ?? 0) - Number(segundo.stock ?? 0));
   }
 
   get totalBajoStock(): number {

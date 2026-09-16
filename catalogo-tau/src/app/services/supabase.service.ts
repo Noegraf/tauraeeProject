@@ -42,6 +42,59 @@ export class SupabaseService {
     return data;
   }
 
+  async getCategorias(): Promise<any[]> {
+    const { data, error } = await this.client.from('categorias').select('*');
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
+  async agregarCategoria(nombre: string): Promise<void> {
+    const { error } = await this.client
+      .from('categorias')
+      .insert([{ nombre }]);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async actualizarCategoria(id: string | number, nombre: string): Promise<void> {
+    const { error } = await this.client
+      .from('categorias')
+      .update({ nombre: nombre.trim() })
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async actualizarVisibilidadCategoria(id: string | number, visible: boolean): Promise<void> {
+    const { error } = await this.client
+      .from('categorias')
+      .update({ visible })
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async eliminarCategoria(id: string | number): Promise<void> {
+    const { error } = await this.client
+      .from('categorias')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
   async subirProducto(producto: Producto): Promise<{
     data: Producto[] | null;
     error: PostgrestError | null;
