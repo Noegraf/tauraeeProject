@@ -91,7 +91,7 @@
           <header class="dashboard-heading">
             <p class="eyebrow">Resumen del catálogo</p>
             <h1 id="inicio-titulo">¡Hola! Este es el resumen de tu catálogo hoy.</h1>
-            <p>Revisá el estado de tus productos y detectá rápidamente qué necesita reposición.</p>
+                <p>Revisá el estado de tus productos y corregí rápidamente cualquier dato inconsistente.</p>
           </header>
 
           <div class="dashboard-stats" aria-label="Estadísticas del catálogo">
@@ -125,23 +125,23 @@
             <div class="section-heading">
               <div>
                 <h2 id="reposicion-titulo">Requieren atención</h2>
-                <p>Productos sin stock o con existencias bajas.</p>
+                <p>Productos con datos incompletos o valores que requieren revisión.</p>
               </div>
-              <span class="reposition-count">{{ productosParaReponer.length }} productos</span>
+              <span class="reposition-count">{{ productosConAnomalias.length }} productos</span>
             </div>
             <div class="reposition-table-wrapper">
               <table class="reposition-table">
-                <thead><tr><th>Producto</th><th>Stock</th><th>Estado</th><th>Precio unitario</th></tr></thead>
+                <thead><tr><th>Producto</th><th>Problemas detectados</th><th>Stock</th><th>Acción</th></tr></thead>
                 <tbody>
-                  @for (producto of productosParaReponer; track producto.id) {
+                  @for (producto of productosConAnomalias; track producto.id) {
                     <tr>
                       <td><strong>{{ producto.marca || 'Sin marca' }}</strong><small>{{ producto.modelo || 'Sin modelo' }}</small></td>
-                      <td>{{ producto.stock ?? 0 }}</td>
-                      <td><span class="stock-badge" [class]="'stock-badge--' + estadoStock(producto)"><i></i>{{ etiquetaStock(producto) }}</span></td>
-                      <td>${{ producto.precio ?? 0 }}</td>
+                      <td><ul class="anomaly-list">@for (anomalia of productoAnomalias(producto); track anomalia) { <li>⚠️ {{ anomalia }}</li> }</ul></td>
+                      <td>{{ producto.stock ?? '—' }}</td>
+                      <td><button class="button button--primary anomaly-fix" type="button" (click)="corregirProducto(producto)">Corregir</button></td>
                     </tr>
                   } @empty {
-                    <tr><td class="reposition-empty" colspan="4"><span aria-hidden="true">&#10003;</span> Todo el inventario tiene stock suficiente.</td></tr>
+                    <tr><td class="reposition-empty" colspan="4"><span aria-hidden="true">&#10003;</span> No se detectaron anomalías de carga.</td></tr>
                   }
                 </tbody>
               </table>
@@ -193,18 +193,35 @@
         </section>
         </div>
       } @else if (seccionActiva === 'inventario') {
-        <section class="placeholder-section" aria-labelledby="inventario-titulo">
-          <span class="placeholder-section__icon" aria-hidden="true">&#9776;</span>
-          <p class="eyebrow">Control de stock</p>
-          <h1 id="inventario-titulo">Inventario</h1>
-          <p>El control avanzado de inventario estará disponible próximamente.</p>
+        <section class="inventory-section" aria-labelledby="inventario-titulo">
+          <header class="section-heading">
+            <div><p class="eyebrow">Control de stock</p><h1 id="inventario-titulo">Tabla maestra de productos</h1><p>Auditá y ajustá precio o stock directamente sobre los datos reales.</p></div>
+          </header>
+          <div class="table-scroll">
+            <table class="products-table">
+              <thead><tr><th>Marca / Modelo</th><th>Precio</th><th>Stock</th><th>Estado</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+              <tbody>
+                @for (producto of listaProductos; track producto.id) {
+                  <tr>
+                    <td><div class="product-cell">@if (producto.imagen_url) { <img [src]="producto.imagen_url" [alt]="producto.marca + ' ' + producto.modelo" /> } @else { <span class="image-placeholder">&#9638;</span> }<span><strong>{{ producto.marca || 'Sin marca' }}</strong><small>{{ producto.modelo || 'Sin modelo' }}</small></span></div></td>
+                    <td><input class="quick-edit-input" type="number" min="0" step="0.01" [value]="producto.precio ?? 0" (change)="actualizarValorInventario(producto, 'precio', $event)" aria-label="Precio del producto" /></td>
+                    <td><input class="quick-edit-input quick-edit-input--small" type="number" min="0" step="1" [value]="producto.stock ?? 0" (change)="actualizarValorInventario(producto, 'stock', $event)" aria-label="Stock del producto" /></td>
+                    <td><span class="stock-badge" [class]="'stock-badge--' + estadoStock(producto)"><i></i>{{ etiquetaStock(producto) }}</span></td>
+                    <td><details class="actions-menu"><summary aria-label="Acciones para {{ producto.marca }} {{ producto.modelo }}">&#8942;</summary><div><button type="button" (click)="prepararEdicion(producto)">Editar</button><button type="button" (click)="verProducto(producto)">Ver producto</button><button class="danger-text" type="button" (click)="eliminarProducto('' + producto.id)">Eliminar</button></div></details></td>
+                  </tr>
+                } @empty { <tr><td class="reposition-empty" colspan="5">No hay productos cargados.</td></tr> }
+              </tbody>
+            </table>
+          </div>
         </section>
       } @else if (seccionActiva === 'configuracion') {
-        <section class="placeholder-section" aria-labelledby="configuracion-titulo">
-          <span class="placeholder-section__icon" aria-hidden="true">&#9881;</span>
-          <p class="eyebrow">Preferencias</p>
-          <h1 id="configuracion-titulo">Configuración</h1>
-          <p>Las preferencias del panel están en construcción.</p>
+        <section class="settings-section" aria-labelledby="configuracion-titulo">
+          <header class="settings-heading"><p class="eyebrow">Preferencias</p><h1 id="configuracion-titulo">Configuración</h1><p>Ajustes generales de la plataforma TAU RAEE.</p></header>
+          <div class="settings-grid">
+            <article class="settings-card"><span class="settings-card__icon" aria-hidden="true">&#9881;</span><h2>Información del sistema</h2><dl><dt>Plataforma</dt><dd>TAU RAEE</dd><dt>Versión</dt><dd>1.0.0</dd><dt>Estado</dt><dd><span class="stock-badge stock-badge--disponible"><i></i>Operativo</span></dd></dl></article>
+            <article class="settings-card"><span class="settings-card__icon" aria-hidden="true">&#128100;</span><h2>Administradores</h2><p>La gestión avanzada de administradores estará disponible próximamente.</p><span class="settings-card__muted">Sesión actual: Administrador</span></article>
+            <article class="settings-card settings-card--danger"><span class="settings-card__icon" aria-hidden="true">&#10140;</span><h2>Sesión</h2><p>Cerrá tu sesión al finalizar para proteger el panel.</p><button class="button button--danger" type="button" (click)="cerrarSesion()">Cerrar sesión</button></article>
+          </div>
         </section>
       }
     </main>

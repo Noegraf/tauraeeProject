@@ -272,15 +272,82 @@ export class Admin implements OnInit {
 
   get totalValorizado(): number {
     return this.listaProductos.reduce(
-      (total, producto) => total + Number(producto.precio ?? 0) * Number(producto.stock ?? 0),
+      (total, producto) => {
+        const precio = Number(producto.precio);
+        const stock = Number(producto.stock);
+        return total + (Number.isFinite(precio) && Number.isFinite(stock) ? precio * stock : 0);
+      },
       0,
     );
   }
 
-  get productosParaReponer(): Producto[] {
+  get productosConAnomalias(): Producto[] {
     return this.listaProductos
-      .filter((producto) => this.estadoStock(producto) !== 'disponible')
-      .sort((primero, segundo) => Number(primero.stock ?? 0) - Number(segundo.stock ?? 0));
+      .filter((producto) => this.productoAnomalias(producto).length > 0);
+  }
+
+  productoAnomalias(producto: Producto): string[] {
+    const anomalias: string[] = [];
+    const categoria = producto.categoria?.trim().toLowerCase();
+    const categoriasRegistradas = this.listaCategorias.map((item) => String(item.nombre ?? '').trim().toLowerCase());
+    const precio = Number(producto.precio);
+    const stockValue: unknown = producto.stock;
+    const stock = Number(stockValue);
+
+    if (!categoria || !categoriasRegistradas.includes(categoria)) {
+      anomalias.push('Categoría inexistente o no asignada');
+    }
+    if (!producto.marca?.trim()) {
+      anomalias.push('Falta marca');
+    }
+    if (!producto.modelo?.trim()) {
+      anomalias.push('Falta modelo');
+    }
+    if (producto.precio === null || producto.precio === undefined || producto.precio === '' || !Number.isFinite(precio) || precio <= 0) {
+      anomalias.push('Precio inválido');
+    } else if (precio > 100_000_000) {
+      anomalias.push('Precio hiperinflado');
+    }
+    if (stockValue === null || stockValue === undefined || stockValue === '' || !Number.isFinite(stock) || stock < 0 || !Number.isInteger(stock)) {
+      anomalias.push('Stock mal cargado');
+    }
+
+    return anomalias;
+  }
+
+  corregirProducto(producto: Producto): void {
+    this.seccionActiva = 'productos';
+    this.prepararEdicion(producto);
+    setTimeout(() => this.irAlFormulario(), 0);
+  }
+
+  async actualizarValorInventario(
+    producto: Producto,
+    campo: 'precio' | 'stock',
+    event: Event,
+  ): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const valor = Number(input.value);
+
+    if (!Number.isFinite(valor) || valor < 0 || (campo === 'stock' && !Number.isInteger(valor))) {
+      this.mostrarError(campo === 'precio' ? 'Ingresá un precio válido.' : 'Ingresá un stock entero y no negativo.');
+      input.value = String(producto[campo] ?? 0);
+      return;
+    }
+
+    const { error } = await this.supabase.client
+      .from('productos')
+      .update({ [campo]: valor })
+      .eq('id', String(producto.id));
+
+    if (error) {
+      console.error(`Error al actualizar ${campo}:`, error);
+      this.mostrarError('No se pudo actualizar el inventario.');
+      return;
+    }
+
+    producto[campo] = valor;
+    this.mostrarExito('Inventario actualizado correctamente.');
   }
 
   get totalBajoStock(): number {
