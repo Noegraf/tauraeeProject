@@ -95,6 +95,64 @@ export class SupabaseService {
     }
   }
 
+  async getAdministradores(): Promise<any[]> {
+    const { data, error } = await this.client
+      .from('admins')
+      .select('id, email, fecha_alta')
+      .order('fecha_alta', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data ?? [];
+  }
+
+  async esAdministradorAutorizado(email: string): Promise<boolean> {
+    const { data, error } = await this.client
+      .from('admins')
+      .select('id')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return Boolean(data);
+  }
+
+  async agregarAdministrador(email: string): Promise<void> {
+    const { error } = await this.client
+      .from('admins')
+      .insert([{ email: email.trim(), fecha_alta: new Date().toISOString() }]);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async eliminarAdministrador(id: string | number): Promise<void> {
+    const { error } = await this.client
+      .from('admins')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async enviarRecuperacionPassword(email: string, redirectTo: string): Promise<void> {
+    const { error } = await this.client.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo,
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
   async subirProducto(producto: Producto): Promise<{
     data: Producto[] | null;
     error: PostgrestError | null;

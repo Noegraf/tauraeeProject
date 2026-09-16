@@ -1,10 +1,10 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Producto, SupabaseService } from '../services/supabase.service';
 
 @Component({
-  imports: [DecimalPipe, FormsModule, ReactiveFormsModule],
+  imports: [DatePipe, DecimalPipe, FormsModule, ReactiveFormsModule],
   selector: 'app-admin',
   styleUrl: './admin.scss',
   templateUrl: './admin.html',
@@ -32,6 +32,9 @@ export class Admin implements OnInit {
   public nuevaCategoriaNombre = '';
   public categoriaEditandoId: string | number | null = null;
   public categoriaEditandoNombre = '';
+  public listaAdministradores: any[] = [];
+  public nuevoAdminEmail = '';
+  public adminPendienteEliminar: any | null = null;
 
   public readonly productoForm = this.formBuilder.group({
     categoria: ['', Validators.required],
@@ -67,8 +70,17 @@ export class Admin implements OnInit {
     this.sesionActiva = Boolean(data.session);
 
     if (this.sesionActiva) {
+      const email = data.session?.user.email;
+      if (!email || !(await this.supabase.esAdministradorAutorizado(email))) {
+        await this.supabase.client.auth.signOut();
+        this.sesionActiva = false;
+        this.mostrarError('Tu usuario no está autorizado para acceder al panel.');
+        return;
+      }
+
       await this.cargarProductosAdmin();
       this.listaCategorias = await this.supabase.getCategorias();
+      await this.cargarAdministradores();
     }
   }
 
@@ -88,9 +100,16 @@ export class Admin implements OnInit {
       return;
     }
 
+    if (!(await this.supabase.esAdministradorAutorizado(this.email))) {
+      await this.supabase.client.auth.signOut();
+      this.mostrarError('Tu usuario no está autorizado para acceder al panel.');
+      return;
+    }
+
     this.sesionActiva = true;
     await this.cargarProductosAdmin();
     await this.cargarCategoriasAdmin();
+    await this.cargarAdministradores();
   }
 
   async cerrarSesion(): Promise<void> {
@@ -101,6 +120,8 @@ export class Admin implements OnInit {
     this.listaProductos = [];
     this.productoPendienteEliminar = null;
     this.categoriaPendienteEliminar = null;
+    this.adminPendienteEliminar = null;
+    this.listaAdministradores = [];
     this.productoSeleccionado = null;
     this.sidebarAbierto = false;
     this.seccionActiva = 'productos';
@@ -133,6 +154,71 @@ export class Admin implements OnInit {
     } catch (error) {
       console.error('Error al cargar las categorías:', error);
       this.mostrarError('No se pudieron cargar las categorías.');
+    }
+  }
+
+  async cargarAdministradores(): Promise<void> {
+    try {
+      this.listaAdministradores = await this.supabase.getAdministradores();
+    } catch (error) {
+      console.error('Error al cargar los administradores:', error);
+      this.mostrarError('No se pudieron cargar los administradores autorizados.');
+    }
+  }
+
+  async guardarNuevoAdministrador(): Promise<void> {
+    const email = this.nuevoAdminEmail.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      this.mostrarError('Ingresá un email válido.');
+      return;
+    }
+
+    try {
+      await this.supabase.agregarAdministrador(email);
+      this.nuevoAdminEmail = '';
+      await this.cargarAdministradores();
+      this.mostrarExito('Administrador autorizado correctamente.');
+    } catch (error) {
+      console.error('Error al agregar el administrador:', error);
+      this.mostrarError('No se pudo autorizar el administrador.');
+    }
+  }
+
+  solicitarEliminacionAdministrador(admin: any): void {
+    this.adminPendienteEliminar = admin;
+  }
+
+  cancelarEliminacionAdministrador(): void {
+    this.adminPendienteEliminar = null;
+  }
+
+  async confirmarEliminacionAdministrador(): Promise<void> {
+    const admin = this.adminPendienteEliminar;
+    if (!admin?.id) {
+      return;
+    }
+
+    try {
+      await this.supabase.eliminarAdministrador(admin.id);
+      this.adminPendienteEliminar = null;
+      await this.cargarAdministradores();
+      this.mostrarExito('Acceso eliminado correctamente.');
+    } catch (error) {
+      console.error('Error al eliminar el administrador:', error);
+      this.mostrarError('No se pudo eliminar el acceso.');
+    }
+  }
+
+  async enviarRecuperacionAdministrador(admin: any): Promise<void> {
+    try {
+      await this.supabase.enviarRecuperacionPassword(
+        admin.email,
+        window.location.origin,
+      );
+      this.mostrarExito(`Enlace de recuperación enviado a ${admin.email}.`);
+    } catch (error) {
+      console.error('Error al enviar la recuperación de contraseña:', error);
+      this.mostrarError('No se pudo enviar el enlace de recuperación.');
     }
   }
 

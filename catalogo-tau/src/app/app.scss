@@ -9,10 +9,37 @@
 }
 
 .site-header__brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.65rem;
 	color: var(--tau-text);
-	font-size: 1.1rem;
-	font-weight: 800;
 	text-decoration: none;
+}
+
+.tau-logo__image {
+	display: block;
+	width: 34px;
+	height: 34px;
+	border-radius: 9px;
+	object-fit: contain;
+}
+
+.tau-logo__text strong,
+.tau-logo__text small {
+	display: block;
+}
+
+.tau-logo__text strong {
+	font-size: 1rem;
+	font-weight: 900;
+	letter-spacing: 0.08em;
+}
+
+.tau-logo__text small {
+	margin-top: 0.1rem;
+	color: var(--tau-muted);
+	font-size: 0.68rem;
+	font-weight: 600;
 }
 
 nav {

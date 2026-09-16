@@ -1,5 +1,8 @@
 <header class="site-header">
-	<a class="site-header__brand" routerLink="/" alt="" src="/catalogo-tau/public/assets/logo.svg">Catálogo Tau</a>
+	<a class="site-header__brand" routerLink="/">
+		<img class="tau-logo__image" src="/assets/logo.svg" alt="" />
+		<span class="tau-logo__text"><small>Catálogo oficial</small></span>
+	</a>
 	<nav aria-label="Navegación principal">
 		<a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Catálogo</a>
 		<a routerLink="/admin" routerLinkActive="is-active">Administración</a>

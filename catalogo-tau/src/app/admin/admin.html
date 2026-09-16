@@ -1,7 +1,7 @@
 @if (!sesionActiva) {
   <main class="login-page">
     <section class="login-card" aria-labelledby="login-titulo">
-      <p class="brand-mark">TAU / ADMIN</p>
+      <div class="login-brand"><img class="tau-logo__image" src="/assets/logo.svg" alt="TAU" /><span class="tau-logo__text"><small>Panel interno</small></span></div>
       <h1 id="login-titulo">Ingresar al catálogo</h1>
       <p>Accedé para administrar productos e inventario.</p>
       <form class="login-form" (ngSubmit)="login()" novalidate>
@@ -25,7 +25,7 @@
     <button class="sidebar-scrim" type="button" aria-label="Cerrar navegación" (click)="sidebarAbierto = false"></button>
     <aside class="sidebar" aria-label="Navegación principal">
       <div class="sidebar__top">
-        <div class="brand"><img src="/catalogo-tau/public/assets/logo.svg" alt="Logo TAU"></div>
+        <div class="brand"><img class="tau-logo__image" src="/assets/logo.svg" alt="" /><span class="tau-logo__text"><strong>TAU</strong><small>Catálogo interno / Panel</small></span></div>
         <button class="icon-button sidebar__close" type="button" aria-label="Cerrar navegación" (click)="sidebarAbierto = false">&times;</button>
       </div>
       <nav class="sidebar__nav">
@@ -219,7 +219,7 @@
           <header class="settings-heading"><p class="eyebrow">Preferencias</p><h1 id="configuracion-titulo">Configuración</h1><p>Ajustes generales de la plataforma TAU RAEE.</p></header>
           <div class="settings-grid">
             <article class="settings-card"><span class="settings-card__icon" aria-hidden="true">&#9881;</span><h2>Información del sistema</h2><dl><dt>Plataforma</dt><dd>TAU RAEE</dd><dt>Versión</dt><dd>1.0.0</dd><dt>Estado</dt><dd><span class="stock-badge stock-badge--disponible"><i></i>Operativo</span></dd></dl></article>
-            <article class="settings-card"><span class="settings-card__icon" aria-hidden="true">&#128100;</span><h2>Administradores</h2><p>La gestión avanzada de administradores estará disponible próximamente.</p><span class="settings-card__muted">Sesión actual: Administrador</span></article>
+            <article class="settings-card settings-card--wide"><span class="settings-card__icon" aria-hidden="true">&#128100;</span><h2>Gestión de administradores</h2><p>Controlá los correos autorizados. Las contraseñas nunca se muestran: podés enviar un enlace seguro para restablecerlas.</p><form class="admin-access-form" (ngSubmit)="guardarNuevoAdministrador()" novalidate><input type="email" name="nuevoAdminEmail" [(ngModel)]="nuevoAdminEmail" placeholder="admin@cooperativa.org" aria-label="Email del nuevo administrador" /><button class="button button--primary" type="submit">Dar de alta</button></form><div class="admin-access-list">@for (admin of listaAdministradores; track admin.id) { <div class="admin-access-row"><span><strong>{{ admin.email }}</strong><small>Alta: {{ admin.fecha_alta | date:'dd/MM/yyyy' }}</small></span><div class="admin-access-row__actions"><button class="button button--quiet" type="button" (click)="enviarRecuperacionAdministrador(admin)">Restablecer contraseña</button><button class="button button--danger" type="button" (click)="solicitarEliminacionAdministrador(admin)">Eliminar acceso</button></div></div> } @empty { <span class="settings-card__muted">No hay administradores autorizados cargados.</span> }</div></article>
             <article class="settings-card settings-card--danger"><span class="settings-card__icon" aria-hidden="true">&#10140;</span><h2>Sesión</h2><p>Cerrá tu sesión al finalizar para proteger el panel.</p><button class="button button--danger" type="button" (click)="cerrarSesion()">Cerrar sesión</button></article>
           </div>
         </section>
@@ -259,6 +259,17 @@
       <h2 id="eliminar-categoria-titulo">¿Eliminar categoría?</h2>
       <p>Vas a eliminar <strong>{{ categoriaEliminar.nombre }}</strong> de las categorías disponibles.</p>
       <div class="modal__actions"><button class="button button--quiet" type="button" (click)="cancelarEliminacionCategoria()">Cancelar</button><button class="button button--danger" type="button" (click)="confirmarEliminacionCategoria()">Eliminar categoría</button></div>
+    </section>
+  </div>
+}
+
+@if (adminPendienteEliminar; as adminEliminar) {
+  <div class="modal-backdrop" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="eliminar-admin-titulo">
+      <div class="modal__icon modal__icon--danger">!</div>
+      <h2 id="eliminar-admin-titulo">¿Eliminar acceso?</h2>
+      <p>El correo <strong>{{ adminEliminar.email }}</strong> dejará de estar autorizado en el panel.</p>
+      <div class="modal__actions"><button class="button button--quiet" type="button" (click)="cancelarEliminacionAdministrador()">Cancelar</button><button class="button button--danger" type="button" (click)="confirmarEliminacionAdministrador()">Eliminar acceso</button></div>
     </section>
   </div>
 }
