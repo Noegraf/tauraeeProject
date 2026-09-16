@@ -85,6 +85,20 @@ export class Admin implements OnInit {
     await this.cargarProductosAdmin();
   }
 
+  async cerrarSesion(): Promise<void> {
+    await this.supabase.client.auth.signOut();
+    this.sesionActiva = false;
+    this.email = '';
+    this.password = '';
+    this.listaProductos = [];
+    this.productoPendienteEliminar = null;
+    this.productoSeleccionado = null;
+    this.sidebarAbierto = false;
+    this.seccionActiva = 'productos';
+    this.cancelarEdicion();
+    this.cerrarNotificacion();
+  }
+
   cambiarSeccion(seccion: string): void {
     this.seccionActiva = seccion;
     this.sidebarAbierto = false;

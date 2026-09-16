@@ -36,7 +36,12 @@
         <a href="#inventario" [class.is-active]="seccionActiva === 'inventario'" [attr.aria-current]="seccionActiva === 'inventario' ? 'page' : null" (click)="cambiarSeccion('inventario'); $event.preventDefault()"><span class="nav-icon">&#9776;</span>Inventario</a>
         <a href="#configuracion" [class.is-active]="seccionActiva === 'configuracion'" [attr.aria-current]="seccionActiva === 'configuracion' ? 'page' : null" (click)="cambiarSeccion('configuracion'); $event.preventDefault()"><span class="nav-icon">&#9881;</span>Configuración</a>
       </nav>
-      <div class="sidebar__user"><span class="avatar">A</span><span><strong>Administrador</strong><small>Sesión activa</small></span><span class="status-dot status-dot--green"></span></div>
+      <div class="sidebar__user">
+        <span class="avatar">A</span>
+        <span><strong>Administrador</strong><small>Sesión activa</small></span>
+        <span class="status-dot status-dot--green"></span>
+        <button class="sidebar__logout" type="button" (click)="cerrarSesion()">Cerrar sesión</button>
+      </div>
     </aside>
 
     <main class="admin-main" id="productos">

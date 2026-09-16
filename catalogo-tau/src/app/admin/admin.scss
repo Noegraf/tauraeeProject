@@ -299,6 +299,26 @@ textarea {
   margin-left: auto;
 }
 
+.sidebar__logout {
+  width: 100%;
+  margin-top: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.sidebar__logout:hover {
+  border-color: #efb8b8;
+  background: var(--red-bg);
+  color: var(--red);
+}
+
 .status-dot {
   display: inline-block;
   width: 7px;
